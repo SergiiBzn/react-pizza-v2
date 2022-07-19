@@ -1,18 +1,24 @@
 import React from 'react';
 import axios from 'axios';
+import qs from 'qs';
 import { useSelector, useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 import Categories from '../components/Categories';
-import Sort from '../components/Sort';
+import Sort, { sortList } from '../components/Sort';
 import PizzaBlock from '../components/PizzaBlock';
 import Skeleton from '../components/PizzaBlock/Skeleton';
 import Pagination from '../components/Pagination';
 
 import { SearchContext } from '../App';
-import { setCategoryId, setCurrentPage } from '../redux/slices/filterSlice';
+import { setCategoryId, setCurrentPage, setFilters } from '../redux/slices/filterSlice';
 
 const Home = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const isSearch = React.useRef(false);
+  const isMounted = React.useRef(false);
+
   const categoryId = useSelector((state) => state.filter.categoryId);
   const sortType = useSelector((state) => state.filter.sort.sortProperty);
   const currentPage = useSelector((state) => state.filter.currentPage);
@@ -31,6 +37,22 @@ const Home = () => {
   };
 
   React.useEffect(() => {
+    if (window.location.search) {
+      const params = qs.parse(window.location.search.substring(1));
+
+      const sort = sortList.find((obj) => obj.sortProperty === params.sortProperty);
+
+      dispatch(
+        setFilters({
+          ...params,
+          sort,
+        }),
+      );
+      isSearch.current = true;
+    }
+  }, []);
+
+  const fetchPizzas = () => {
     setIsLoading(true);
 
     const sortBy = sortType.replace('-', '');
@@ -46,8 +68,28 @@ const Home = () => {
         setItems(res.data);
         setIsLoading(false);
       });
+  };
 
+  React.useEffect(() => {
     window.scrollTo(0, 0);
+
+    if (!isSearch.current) {
+      fetchPizzas();
+    }
+
+    isSearch.current = false;
+  }, [categoryId, sortType, searchValue, currentPage]);
+
+  React.useEffect(() => {
+    if (isMounted.current) {
+      const queryString = qs.stringify({
+        sortProperty: sortType,
+        categoryId,
+        currentPage,
+      });
+      navigate(`?${queryString}`);
+    }
+    isMounted.current = true;
   }, [categoryId, sortType, searchValue, currentPage]);
 
   const pizzas = items.map((obj) => (
