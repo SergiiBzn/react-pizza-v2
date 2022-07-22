@@ -95,11 +95,13 @@ const Home = () => {
   const pizzas = items.map((obj) => (
     <PizzaBlock
       key={obj.id}
-      title={obj.title}
-      price={obj.price}
-      imageUrl={obj.imageUrl}
-      sizes={obj.sizes}
-      types={obj.types}
+      {...obj}
+      // key={obj.id}
+      // title={obj.title}
+      // price={obj.price}
+      // imageUrl={obj.imageUrl}
+      // sizes={obj.sizes}
+      // types={obj.types}
     />
   ));
 
@@ -109,7 +111,6 @@ const Home = () => {
     <div className="container">
       <div className="content__top">
         <Categories value={categoryId} onChangeCategory={onChangeCategory} />
-        {/* 'i' from Categories.jsx*/}
         <Sort />
       </div>
       <h2 className="content__title">Все пиццы</h2>
