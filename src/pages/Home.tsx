@@ -13,7 +13,7 @@ import Pagination from '../components/Pagination';
 import { setCategoryId, setCurrentPage, setFilters } from '../redux/slices/filterSlice';
 import { fetchPizzas, selectPizzaData } from '../redux/slices/pizzaSlice';
 
-const Home = () => {
+const Home: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const isSearch = React.useRef(false);
@@ -21,17 +21,21 @@ const Home = () => {
 
   const { items, status } = useSelector(selectPizzaData);
 
+  // @ts-ignore
   const categoryId = useSelector((state) => state.filter.categoryId);
+  // @ts-ignore
   const sortType = useSelector((state) => state.filter.sort.sortProperty);
+  // @ts-ignore
   const currentPage = useSelector((state) => state.filter.currentPage);
+  // @ts-ignore
   const searchValue = useSelector((state) => state.filter.searchValue);
 
-  const onChangeCategory = (id) => {
-    dispatch(setCategoryId(id));
+  const onChangeCategory = (idx: number) => {
+    dispatch(setCategoryId(idx));
   };
 
-  const onChangePage = (number) => {
-    dispatch(setCurrentPage(number));
+  const onChangePage = (page: number) => {
+    dispatch(setCurrentPage(page));
   };
 
   React.useEffect(() => {
@@ -57,6 +61,7 @@ const Home = () => {
     const search = searchValue ? `&search=${searchValue}` : '';
 
     dispatch(
+      // @ts-ignore
       fetchPizzas({
         sortBy,
         order,
@@ -87,7 +92,7 @@ const Home = () => {
     isMounted.current = true;
   }, [categoryId, sortType, searchValue, currentPage]);
 
-  const pizzas = items.map((obj) => (
+  const pizzas = items.map((obj: any) => (
     <Link key={obj.id} to={`/pizza/${obj.id}`}>
       <PizzaBlock {...obj} />
     </Link>
