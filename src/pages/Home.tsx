@@ -1,8 +1,8 @@
 import React from 'react';
 import qs from 'qs';
 
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { useNavigate} from 'react-router-dom';
 
 import Categories from '../components/Categories';
 import Sort, { sortList } from '../components/Sort';
@@ -11,10 +11,11 @@ import Skeleton from '../components/PizzaBlock/Skeleton';
 import Pagination from '../components/Pagination';
 
 import { setCategoryId, setCurrentPage, setFilters } from '../redux/slices/filterSlice';
-import { fetchPizzas, selectPizzaData } from '../redux/slices/pizzaSlice';
+import { fetchPizzas, SearchPizzaParams, selectPizzaData } from '../redux/slices/pizzaSlice';
+import { useAppDispatch } from '../redux/store';
 
 const Home: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const isSearch = React.useRef(false);
   const isMounted = React.useRef(false);
@@ -40,18 +41,17 @@ const Home: React.FC = () => {
 
   React.useEffect(() => {
     if (window.location.search) {
-      const params = qs.parse(window.location.search.substring(1));
-
-      const sort = sortList.find((obj) => obj.sortProperty === params.sortProperty);
-
+      const params = qs.parse(window.location.search.substring(1)) as unknown as SearchPizzaParams;
+      const sort = sortList.find((obj) => obj.sortProperty === params.sortBy);
       dispatch(
         setFilters({
-          ...params,
-          sort,
-        }),
-      );
-      isSearch.current = true;
+          searchValue: params.search,
+          categoryId: Number(params.category),
+          currentPage: Number(params.currentPage),
+          sort: sort || sortList[0],
+      }));
     }
+    isMounted.current = true;
   }, []);
 
   const getPizzas = async () => {
@@ -61,13 +61,12 @@ const Home: React.FC = () => {
     const search = searchValue ? `&search=${searchValue}` : '';
 
     dispatch(
-      // @ts-ignore
       fetchPizzas({
         sortBy,
         order,
         category,
         search,
-        currentPage,
+        currentPage: String(currentPage),
       }),
     );
   };
@@ -93,9 +92,7 @@ const Home: React.FC = () => {
   }, [categoryId, sortType, searchValue, currentPage]);
 
   const pizzas = items.map((obj: any) => (
-    <Link key={obj.id} to={`/pizza/${obj.id}`}>
       <PizzaBlock {...obj} />
-    </Link>
   ));
 
   const skeletons = [...new Array(4)].map((_, index) => <Skeleton key={index} />);
